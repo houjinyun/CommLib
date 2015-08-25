@@ -7,3 +7,4 @@
     2.Base64算法
 
 #怎样使用
+    compile 'com.hjy.library:encryption:1.0.0'
