@@ -2,7 +2,7 @@ package com.hjy.encryption;
 
 /**
  * 将字符串转换成16进制格式工具类
- * 
+ *
  * @author houjinyun
  *
  */

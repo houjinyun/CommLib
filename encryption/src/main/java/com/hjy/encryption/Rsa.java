@@ -15,7 +15,7 @@ import javax.crypto.Cipher;
  * RSA加解密算法<br>
  * 1.客户端采用公钥进行数据加密，服务端采用私钥进行解密<br>
  * 2.服务端采用私钥进行数据签名，客户端采用公钥进行签名验证<br>
- * 
+ *
  * @author houjinyun
  *
  */
@@ -80,7 +80,7 @@ public class Rsa {
 	 * @param encryptData 加密后的数据，base64编码
 	 * @param privateKey 私钥，base64编码
 	 * 
-	 * @return 
+	 * @return 解密后的字符串
 	 */
 	public static String decrypt(String encryptData, String privateKey) {
         try {
