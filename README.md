@@ -7,4 +7,5 @@
     2.Base64算法
 
 #怎样使用
+##使用加密算法库
     compile 'com.hjy.library:encryption:1.0.0'
