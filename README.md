@@ -12,4 +12,10 @@
 
 		compile 'com.hjy.library:encryption:1.0.0'	
 2. 使用ZBar进行条形码扫描
+		
+		compile 'com.hjy.library:zbar:1.0.0'
+
 3. 使用ZXing进行条形码扫描
+		
+		compile 'com.hjy.library:zxing:1.0.0'
+

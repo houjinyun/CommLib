@@ -21,7 +21,6 @@ import net.sourceforge.zbar.SymbolSet;
 
 public class ScannerActivity extends Activity implements ZBarScannerView.ResultHandler, View.OnClickListener {
 
-    private static String TAG = "ScannerActivity";
     private static final int REQ_CODE_SELECT_PHOTO = 10;
 
     private ZBarScannerView mScannerView;
@@ -115,9 +114,8 @@ public class ScannerActivity extends Activity implements ZBarScannerView.ResultH
                             int[] pixels = new int[w * h];
                             bmp.getPixels(pixels, 0, w, 0, 0, w, h);
 
-                            if(bmp != null && !bmp.isRecycled()) {
+                            if(!bmp.isRecycled()) {
                                 bmp.recycle();
-                                bmp = null;
                             }
 
                             byte[] yuvData = Utils.rgb2YCbCr420(pixels, w, h);

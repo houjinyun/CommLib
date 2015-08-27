@@ -93,24 +93,9 @@ public class ZBarScannerView extends BarcodeScannerView {
             data = rotatedData;
         }
 
-/*        Rect cropRect = getFramingRectInPreview(width, height);
-        int area = cropRect.width() * cropRect.height();
-        byte[] matrix = new byte[area];
-        int inputOfset = cropRect.top * width + cropRect.left;
-        if(cropRect.width() == width) {
-            System.arraycopy(data, inputOfset, matrix, 0, area);
-        } else {
-            byte[] yuv = data;
-            for(int y = 0; y < cropRect.height(); y++) {
-                int outputOffset = y * cropRect.width();
-                System.arraycopy(yuv, inputOfset, matrix, outputOffset, cropRect.width());
-                inputOfset += width;
-            }
-        }*/
 
         Image barcode = new Image(width, height, "Y800");
         barcode.setData(data);
-//        barcode.setData(matrix);
 
         int result = mScanner.scanImage(barcode);
 

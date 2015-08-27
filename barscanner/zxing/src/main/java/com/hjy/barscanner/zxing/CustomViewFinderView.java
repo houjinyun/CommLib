@@ -13,9 +13,10 @@ import android.view.View;
 import me.dm7.barcodescanner.core.DisplayUtils;
 import me.dm7.barcodescanner.core.IViewFinder;
 
+/**
+ * 自定义ViewFinder
+ */
 public class CustomViewFinderView extends View implements IViewFinder {
-    private static final String TAG = "ViewFinderView";
-
     private Rect mFramingRect;
 
     private static final int MIN_FRAME_WIDTH = 240;

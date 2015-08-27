@@ -5,12 +5,22 @@ import android.hardware.Camera;
 import java.util.List;
 
 public class CameraUtils {
-    /** A safe way to get an instance of the Camera object. */
+
+    /**
+     * A safe way to get an instance of the Camera object.
+     *
+     * @return Camera
+     */
     public static Camera getCameraInstance() {
         return getCameraInstance(-1);
     }
 
-    /** A safe way to get an instance of the Camera object. */
+    /**
+     * A safe way to get an instance of the Camera object.
+     *
+     * @param cameraId id
+     * @return Carmera
+     */
     public static Camera getCameraInstance(int cameraId) {
         Camera c = null;
         try {
