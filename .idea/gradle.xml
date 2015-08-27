@@ -10,6 +10,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/barscanner" />
+            <option value="$PROJECT_DIR$/barscanner/zbar" />
+            <option value="$PROJECT_DIR$/barscanner/zxing" />
             <option value="$PROJECT_DIR$/encryption" />
           </set>
         </option>

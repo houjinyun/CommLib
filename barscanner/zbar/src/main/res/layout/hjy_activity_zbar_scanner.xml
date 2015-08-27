@@ -1,0 +1,53 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <com.hjy.barscanner.zbar.ZBarScannerView
+        android:id="@+id/ZBarScannerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/ImageButton_Scanner_Back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/barcode_cancel"
+            android:background="@null"
+            android:layout_marginLeft="15dip"
+            android:padding="15dp"
+            />
+
+        <ImageView
+            android:id="@+id/ImageView_Scanner_Torch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/barcode_torch_off"
+            android:layout_centerInParent="true"
+            android:padding="15dip"
+            />
+
+        <Button
+            android:id="@+id/Button_Scanner_Gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="15dip"
+            android:background="@drawable/barcode_local_pic"
+            android:text=" 相册 "
+            android:textColor="#fff"
+            android:textSize="18sp"
+            android:paddingLeft="8dip"
+            android:paddingRight="8dip"
+            android:layout_centerVertical="true"
+            android:visibility="visible"
+            />
+        <!-- TODO 直接解码本地图片，zbar不好实现 -->
+
+    </RelativeLayout>
+
+</RelativeLayout>
