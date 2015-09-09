@@ -1,1 +1,5 @@
-include ':app', ':encryption', ':barscanner:zbar', ':barscanner:zxing'
+include ':app'
+include ':encryption'
+//include ':barscanner:zbar'
+//include ':barscanner:zxing'
+//include ':imagelibs'

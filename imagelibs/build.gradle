@@ -28,6 +28,7 @@ android {
 }
 
 dependencies {
+    compile "com.android.support:support-v4:21.0.3"
 }
 
 def siteUrl = "https://github.com/houjinyun/CommLib"
@@ -35,7 +36,7 @@ def gitUrl = "https://github.com/houjinyun/CommLib.git"
 
 //填写唯一包名
 group = "com.hjy.library"
-version = "1.0.1"
+version = "1.0.0"
 
 install {
     repositories.mavenInstaller {
@@ -45,7 +46,7 @@ install {
                 packaging 'aar'
 
                 //添加项目描述
-                name 'Rsa, Md5, Aes, Des, Base64 algorithom'
+                name 'Image processing tools'
                 url siteUrl
 
                 //设置开源证书信息
@@ -118,7 +119,7 @@ bintray {
 
     pkg {
         repo = "maven"//上传的中央仓库名称
-        name = "Encryption"//上传的项目的名字
+        name = "ImageLibs"//上传的项目的名字
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ["Apache-2.0"]
