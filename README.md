@@ -73,6 +73,8 @@
 1). 在build.gradle里添加如下依赖
 
 	compile 'com.hjy.library:imagelibs:1.0.0'
+	compile "com.android.support:support-v4:21.0.3"
+
 2). ImageUtil.java工具类
 	
 	//解析出符合特定尺寸的图片，并且考虑图片的选择角度等信息
