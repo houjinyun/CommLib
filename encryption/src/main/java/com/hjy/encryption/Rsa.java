@@ -55,7 +55,7 @@ public class Rsa {
 	 * 采用公钥进行加密
 	 * 
 	 * @param content 需要加密的字符串
-	 * @param publicKey 公钥，64编码
+	 * @param publicKey 公钥，base64编码
 	 * 
 	 * @return base64编码后的加密字符串
 	 */
