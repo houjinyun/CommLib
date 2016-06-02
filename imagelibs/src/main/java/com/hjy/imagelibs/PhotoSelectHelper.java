@@ -18,56 +18,70 @@ import java.util.Random;
  * @author Jinyun Hou
  * 
  */
-public class PhotoSelectHandler {
+public class PhotoSelectHelper {
 
-    public interface OnImageSelectedListener {
+    public interface OnPhotoSelectListener {
         /**
-         * 图片选择回调
+         * 图片获取成功
          *
          * @param intent Intent
          * @param file 选择的图片文件
          */
-        public void onImageSelected(Intent intent, File file);
+        public void onPhotoSelectSucc(Intent intent, File file);
 
         /**
          * 处理失败
+         *
+         * @param errorType 错误类型
+         * @param errorMsg 错误信息
          */
-        public void onFail();
+        public void onPhotoSelectFail(int errorType, String errorMsg);
     }
 
     /**
      * 拍照
      */
-    public static final int REQ_CODE_TAKE_PHOTO = 9991;
+    public int REQ_CODE_TAKE_PHOTO = 0;
 
     /**
      * 相册选择图片
      */
-    public static final int REQ_CODE_SELECT_PHOTO = 9992;
+    public int REQ_CODE_SELECT_PHOTO = 0;
     /**
      * 剪切图片
      */
-    public static final int REQ_CODE_CROP_IMAGE = 9993;
+    public int REQ_CODE_CROP_IMAGE = 0;
 
     protected Activity mActivity;
     protected Fragment mFragment;
-    protected File mCacheDir;           //文件缓存目录
+    protected File mCacheDir;           //图片文件的缓存目录
     protected int mCropWidth;           //裁切的宽度，不需要裁切则为0
     protected int mCropHeight;          //裁切的高度，不需要裁切则为0
 
     protected File mCacheFile;          //拍照时的输出文件
+    /**
+     * 拍照获得的图片名字是否隐藏文件类型，true-则图片名字以.jpeg结尾，false-则图片名字没有文件类型后缀名，一般系统相机不会扫描到该图片
+     */
+    private boolean mHideFileType = false;
 
-    protected OnImageSelectedListener mOnImageSelectedListener;
+    /**
+     * 拍照或者从相册里选择图片时，是否直接返回原图，默认会对原图进行压缩处理，返回合适大小的图片，避免OOM
+     */
+    private boolean mIsReturnOriginalImage = false;
 
-    public PhotoSelectHandler(Activity activity, File cacheDir) {
+    protected OnPhotoSelectListener mOnPhotoSelectListener;
+
+    public PhotoSelectHelper(Activity activity, File cacheDir) {
         this(activity, null, cacheDir);
     }
 
-    public PhotoSelectHandler(Activity activity, Fragment fragment, File cacheDir) {
+    public PhotoSelectHelper(Activity activity, Fragment fragment, File cacheDir) {
         this(activity, fragment, cacheDir, 0, 0);
     }
 
     /**
+     * 如果是在Fragment里调用系统相机拍照程序，则fragment参数不能为null，否则不能处理拍照后的返回结果<br>
+     * 如果需要拍照后或者剪切图片后对其进行裁剪，则必须传入cropWidth, cropHeight参数指明裁剪的大小
      *
      * @param activity 启动图片选择时所在的Activity，不能为null
      * @param fragment 启动图片选择时所在的Fragment，如不为null，则采用Fragment的startActivityForResult()方法
@@ -75,16 +89,20 @@ public class PhotoSelectHandler {
      * @param cropWidth 需要裁减的宽度，如不需要则为0
      * @param cropHeight 需要裁减的高度，如不需要则为0
      */
-    public PhotoSelectHandler(Activity activity, Fragment fragment, File cacheDir, int cropWidth, int cropHeight) {
+    public PhotoSelectHelper(Activity activity, Fragment fragment, File cacheDir, int cropWidth, int cropHeight) {
         mActivity = activity;
         mFragment = fragment;
         mCacheDir = cacheDir;
         mCropWidth = cropWidth;
         mCropHeight = cropHeight;
+
+        REQ_CODE_TAKE_PHOTO = R.string.hjy_req_take_photo;
+        REQ_CODE_SELECT_PHOTO = R.string.hjy_req_pick_image_from_gallery;
+        REQ_CODE_CROP_IMAGE = R.string.hjy_req_crop_image;
     }
 
-    public void setOnImageSelectedListener(OnImageSelectedListener onImageSelectedListener) {
-        mOnImageSelectedListener = onImageSelectedListener;
+    public void setOnPhotoSelectListener(OnPhotoSelectListener listener) {
+        mOnPhotoSelectListener = listener;
     }
 
     /**
@@ -102,6 +120,14 @@ public class PhotoSelectHandler {
         mCacheDir = cacheDir;
     }
 
+    public void setHideFileType(boolean isHideFileType) {
+        mHideFileType = isHideFileType;
+    }
+
+    public void setReturnOriginalImage(boolean returnOriginalImage) {
+        mIsReturnOriginalImage = returnOriginalImage;
+    }
+
     /**
      * 在Activity或者Fragment中的onActivityResult()方法中必须调用该方法
      *
@@ -114,91 +140,107 @@ public class PhotoSelectHandler {
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQ_CODE_TAKE_PHOTO) {                  //拍照获取图片
             if(resultCode != Activity.RESULT_OK) {
-                if(null != mOnImageSelectedListener) {
-                    mOnImageSelectedListener.onFail();
+                deleteCacheFile();
+                if(null != mOnPhotoSelectListener) {
+                    mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_USER_CANCELLED, null);
                 }
                 return true;
             }
-            if(mCropWidth > 0 || mCropHeight > 0) {
+            if(mCropWidth > 0 && mCropHeight > 0) {
                 //需要裁减
                 cropImage(Uri.fromFile(mCacheFile), mCacheFile, mCropWidth, mCropHeight);
                 return true;
             } else {
+                if(mIsReturnOriginalImage) {
+                    if(null != mOnPhotoSelectListener) {
+                        mOnPhotoSelectListener.onPhotoSelectSucc(data, mCacheFile);
+                    }
+                    return true;
+                }
                 DisplayMetrics dm = mActivity.getResources().getDisplayMetrics();
+                int w = dm.widthPixels;
+                int h = dm.heightPixels;
                 //限制输出图片大小
-                Bitmap bmp = ImageUtil.decodeFileAndConsiderExif(mCacheFile.getAbsolutePath(), dm.widthPixels, dm.widthPixels * dm.heightPixels);
+                Bitmap bmp = ImageUtil.decodeFileAndConsiderExif(mCacheFile.getAbsolutePath(), Math.min(w, h), w * h);
                 if(bmp != null) {
                     //图片保存在文件里
                     ImageUtil.saveImage2File(bmp, 100, mCacheFile);
                     bmp.recycle();
-                    bmp = null;
-                    if(null != mOnImageSelectedListener) {
-                        mOnImageSelectedListener.onImageSelected(data, mCacheFile);
-                    }
-                    return true;
-                } else {
-                    if(null != mOnImageSelectedListener) {
-                        mOnImageSelectedListener.onImageSelected(data, mCacheFile);
-                    }
-                    return true;
                 }
+                if(null != mOnPhotoSelectListener) {
+                    mOnPhotoSelectListener.onPhotoSelectSucc(data, mCacheFile);
+                }
+                return true;
             }
         } else if (requestCode == REQ_CODE_SELECT_PHOTO) {          //相册选择图片
             if(resultCode != Activity.RESULT_OK) {
-                if(null != mOnImageSelectedListener) {
-                    mOnImageSelectedListener.onFail();
+                deleteCacheFile();
+                if(null != mOnPhotoSelectListener) {
+                    mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_USER_CANCELLED, null);
                 }
                 return true;
             }
             if (data != null && data.getData() != null) {
                 Uri uri = data.getData();
-                Cursor cursor = mActivity.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA, MediaStore.Images.Media.ORIENTATION}, null, null, null);
+                Cursor cursor = mActivity.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
                 try {
                     if(cursor != null && cursor.moveToFirst()) {
                         String path = cursor.getString(0);
-                        if(mCropWidth > 0 || mCropHeight > 0) {
+                        if(mCropWidth > 0 && mCropHeight > 0) {
                             //表示需要裁减
                             cropImage(Uri.fromFile(new File(path)), mCacheFile, mCropWidth, mCropHeight);
                             return true;
                         }
 
+                        if(mIsReturnOriginalImage) {
+                            deleteCacheFile();
+                            if(null != mOnPhotoSelectListener) {
+                                mOnPhotoSelectListener.onPhotoSelectSucc(data, new File(path));
+                            }
+                            return true;
+                        }
+
                         DisplayMetrics dm = mActivity.getResources().getDisplayMetrics();
                         //限制输出图片大小
-                        Bitmap bmp = ImageUtil.decodeFileAndConsiderExif(path, dm.widthPixels, dm.widthPixels * dm.heightPixels);
+                        int w = dm.widthPixels;
+                        int h = dm.heightPixels;
+                        Bitmap bmp = ImageUtil.decodeFileAndConsiderExif(mCacheFile.getAbsolutePath(), Math.min(w, h), w * h);
                         if(bmp != null) {
                             //图片保存在文件里
                             ImageUtil.saveImage2File(bmp, 100, mCacheFile);
                             bmp.recycle();
-                            bmp = null;
-                            if(null != mOnImageSelectedListener) {
-                                mOnImageSelectedListener.onImageSelected(data, mCacheFile);
-                            }
-                            return true;
-                        } else {
-                            if(null != mOnImageSelectedListener) {
-                                mOnImageSelectedListener.onImageSelected(data, new File(path));
-                            }
-                            return true;
                         }
+                        if(null != mOnPhotoSelectListener) {
+                            mOnPhotoSelectListener.onPhotoSelectSucc(data, new File(path));
+                        }
+                        return true;
+                    } else {
+                        deleteCacheFile();
+                        if(null != mOnPhotoSelectListener) {
+                            mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_PHOTO_NOT_EXIST, null);
+                        }
+                        return true;
                     }
                 } finally {
                     if(cursor != null)
                         cursor.close();
                 }
             }
-            if(null != mOnImageSelectedListener) {
-                mOnImageSelectedListener.onFail();
+            deleteCacheFile();
+            if(null != mOnPhotoSelectListener) {
+                mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_UNKNOWN, null);
             }
             return true;
         } else if (requestCode == REQ_CODE_CROP_IMAGE) {            //裁减图片
             if(resultCode != Activity.RESULT_OK) {
-                if(null != mOnImageSelectedListener) {
-                    mOnImageSelectedListener.onFail();
+                deleteCacheFile();
+                if(null != mOnPhotoSelectListener) {
+                    mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_USER_CANCELLED, null);
                 }
                 return true;
             }
-            if (null != mOnImageSelectedListener) {
-                mOnImageSelectedListener.onImageSelected(data, mCacheFile);
+            if (null != mOnPhotoSelectListener) {
+                mOnPhotoSelectListener.onPhotoSelectSucc(data, mCacheFile);
             }
             return true;
         }
@@ -219,16 +261,25 @@ public class PhotoSelectHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            deleteCacheFile();
+            if(mOnPhotoSelectListener != null)
+                mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_NO_GALLERY, e.getMessage());
         }
     }
 
     /**
-     * 启动系统相机拍照
-     *
+     * 调用启动系统相机拍照
      */
     public void takePhoto() {
+        if(!ImageUtil.hasCamera(mActivity)) {
+            deleteCacheFile();
+            if(mOnPhotoSelectListener != null) {
+                mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_NO_CAMERA, null);
+            }
+            return;
+        }
         try {
-            mCacheFile = generateCacheFile(false);
+            mCacheFile = generateCacheFile(mHideFileType);
             Intent localIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE, null);
             localIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mCacheFile));
             if(mFragment != null)
@@ -238,11 +289,14 @@ public class PhotoSelectHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            deleteCacheFile();
+            if(mOnPhotoSelectListener != null)
+                mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_NO_CAMERA, e.getMessage());
         }
     }
 
     /**
-     * 剪切头像
+     * 剪切图片
      *
      * @param paramUri 需要裁减的图片Uri
      * @param file 输出文件
@@ -269,8 +323,9 @@ public class PhotoSelectHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            if(mOnImageSelectedListener != null) {
-                mOnImageSelectedListener.onFail();
+            deleteCacheFile();
+            if(mOnPhotoSelectListener != null) {
+                mOnPhotoSelectListener.onPhotoSelectFail(ErrorType.ERROR_NO_CROP_APP, e.getMessage());
             }
         }
     }
@@ -291,6 +346,12 @@ public class PhotoSelectHandler {
     public static String generatePhotoName(boolean hideFileType) {
         String str = System.currentTimeMillis() + "-" + new Random().nextInt(1000) + (hideFileType ? "" : ".JPEG");
         return str;
+    }
+
+    private void deleteCacheFile() {
+        if(mCacheFile.exists()) {
+            mCacheFile.delete();
+        }
     }
 
 }

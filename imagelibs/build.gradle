@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    compile "com.android.support:support-v4:21.0.3"
+    compile "com.android.support:support-v4:22.+"
 }
 
 def siteUrl = "https://github.com/houjinyun/CommLib"
@@ -36,7 +36,7 @@ def gitUrl = "https://github.com/houjinyun/CommLib.git"
 
 //填写唯一包名
 group = "com.hjy.library"
-version = "1.0.0"
+version = "1.0.1"
 
 install {
     repositories.mavenInstaller {

@@ -108,7 +108,7 @@
 
 	public class MainActivity extends Activity {
 
-    private PhotoSelectHandler mPhotoHandler;
+    private PhotoSelectHelper mPhotoHandler;
 
     private ImageView mImgPic;
     private Bitmap mBmp;
@@ -120,21 +120,22 @@
 
         mImgPic = (ImageView) findViewById(R.id.ImageView_Main);
 
-        mPhotoHandler = new PhotoSelectHandler(this, new File(Environment.getExternalStorageDirectory(), "hjylib"));
+        mPhotoHandler = new PhotoSelectHelper(this, new File(Environment.getExternalStorageDirectory(), "hjylib"));
         //设置图片需要的裁减尺寸，如不需要裁减，则不用调用此方法
         mPhotoHandler.setCropWidthAndHeight(150, 150);
         //设置图片选择监听
-        mPhotoHandler.setOnImageSelectedListener(new PhotoSelectHandler.OnImageSelectedListener() {
+        mPhotoHandler.setOnPhotoSelectListener(new PhotoSelectHelper.OnPhotoSelectListener() {
             @Override
-            public void onImageSelected(Intent intent, File file) {
-                if(mBmp != null && !mBmp.isRecycled())
+            public void onPhotoSelectSucc(Intent intent, File file) {
+                if (mBmp != null && !mBmp.isRecycled())
                     mBmp.recycle();
                 mBmp = BitmapFactory.decodeFile(file.getAbsolutePath(), null);
                 mImgPic.setImageBitmap(mBmp);
             }
-
+    
             @Override
-            public void onFail() {
+            public void onPhotoSelectFail(int errType, String msg) {
+                Log.d("MainActivity", "errType = " + errType + "\n" + msg);
                 Toast.makeText(MainActivity.this, "处理失败", Toast.LENGTH_SHORT).show();
             }
         });

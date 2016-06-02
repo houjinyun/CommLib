@@ -2,17 +2,21 @@ package com.hjy.imagelibs;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.provider.MediaStore;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class ImageUtil {
 
@@ -188,14 +192,17 @@ public class ImageUtil {
      * @param bmp Bitmap
      * @param quality 质量 0-100
      * @param file 保存的文件
+     *
+     * @return true-表示保存成功
      */
-    public static void saveImage2File(Bitmap bmp, int quality,  File file) {
+    public static boolean saveImage2File(Bitmap bmp, int quality,  File file) {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(file);
-            bmp.compress(Bitmap.CompressFormat.JPEG, quality, fos);
+            return bmp.compress(Bitmap.CompressFormat.JPEG, quality, fos);
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         } finally {
             try {
                 if (fos != null)
@@ -250,4 +257,18 @@ public class ImageUtil {
         BitmapFactory.decodeFile(file, options);
         return new int[]{options.outWidth, options.outHeight};
     }
+
+    /**
+     * 判断手机是否有可用的拍照相机
+     *
+     * @param context Context
+     * @return true-有相机可用
+     */
+    public static boolean hasCamera(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        return list.size() > 0;
+    }
+
 }
