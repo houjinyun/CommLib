@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hjy_req_take_photo"></string>
-    <string name="hjy_req_pick_image_from_gallery"></string>
-    <string name="hjy_req_crop_image"></string>
-
 </resources>

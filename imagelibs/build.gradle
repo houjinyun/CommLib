@@ -36,7 +36,7 @@ def gitUrl = "https://github.com/houjinyun/CommLib.git"
 
 //填写唯一包名
 group = "com.hjy.library"
-version = "1.0.1"
+version = "1.1.0"
 
 install {
     repositories.mavenInstaller {

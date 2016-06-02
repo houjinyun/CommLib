@@ -41,16 +41,16 @@ public class PhotoSelectHelper {
     /**
      * 拍照
      */
-    public int REQ_CODE_TAKE_PHOTO = 0;
+    public static final int REQ_CODE_TAKE_PHOTO = 8888;
 
     /**
      * 相册选择图片
      */
-    public int REQ_CODE_SELECT_PHOTO = 0;
+    public static final int REQ_CODE_SELECT_PHOTO = 8889;
     /**
      * 剪切图片
      */
-    public int REQ_CODE_CROP_IMAGE = 0;
+    public static final int REQ_CODE_CROP_IMAGE = 8890;
 
     protected Activity mActivity;
     protected Fragment mFragment;
@@ -95,10 +95,6 @@ public class PhotoSelectHelper {
         mCacheDir = cacheDir;
         mCropWidth = cropWidth;
         mCropHeight = cropHeight;
-
-        REQ_CODE_TAKE_PHOTO = R.string.hjy_req_take_photo;
-        REQ_CODE_SELECT_PHOTO = R.string.hjy_req_pick_image_from_gallery;
-        REQ_CODE_CROP_IMAGE = R.string.hjy_req_crop_image;
     }
 
     public void setOnPhotoSelectListener(OnPhotoSelectListener listener) {
