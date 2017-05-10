@@ -10,7 +10,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * AES加密算法<br>
+ * AES加密算法
  * 
  * @author houjinyun
  *
@@ -22,6 +22,42 @@ public class Aes {
 	public static final String CIPHER_ALGORITHM_CBC = "AES/CBC/PKCS5Padding";
 
 	public static final String CIPHER_ALGORITHM_CBC_NoPadding = "AES/CBC/NoPadding";
+
+    /**
+     * AES/ECB/PKCS5Padding
+     *
+     * @param content 要加密的明文
+     * @param seed key
+     *
+     * @return 16进制格式的字符串
+     */
+	public static String encryptByECBPKCS5(String content, String seed) {
+		byte[] result = encrypt(content, seed);
+		if(result != null) {
+			return HexUtil.toHex(result);
+		}
+		return null;
+	}
+
+	public static byte[] encrypt(String content, String password) {
+		try {
+			byte[] newkey = new byte[16];
+
+			for (int i = 0; i < newkey.length && i < password.getBytes().length; ++i) {
+				newkey[i] = password.getBytes()[i];
+			}
+
+			SecretKeySpec key = new SecretKeySpec(newkey, "AES");
+			Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM_ECB);
+			byte[] byteContent = content.getBytes("utf-8");
+			cipher.init(1, key);
+			byte[] result = cipher.doFinal(byteContent);
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	/**
 	 * AES/ECB模式
@@ -48,7 +84,7 @@ public class Aes {
 	 * @param encrypted 已加密的字符串，16进制格式的字符串
 	 * @param seed key
 	 *
-	 * @return
+	 * @return 解密后的文本
 	 */
 	public static String decryptECB(String encrypted, String seed) {
 		try {
@@ -75,7 +111,7 @@ public class Aes {
 	}
 
 	private static byte[] encryptECB(byte[] raw, byte[] clear) throws Exception {
-		SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+		SecretKeySpec skeySpec = new SecretKeySpec(raw, CIPHER_ALGORITHM_ECB);
 		Cipher cipher = Cipher.getInstance("AES");
 		cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
 		byte[] encrypted = cipher.doFinal(clear);
@@ -84,7 +120,7 @@ public class Aes {
 
 	private static byte[] decryptECB(byte[] raw, byte[] encrypted) throws Exception {
 		SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
-		Cipher cipher = Cipher.getInstance("AES");
+		Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM_ECB);
 		cipher.init(Cipher.DECRYPT_MODE, skeySpec);
 		byte[] decrypted = cipher.doFinal(encrypted);
 		return decrypted;
@@ -92,12 +128,12 @@ public class Aes {
 
 
 	/**
-	 * AES/CBC/NoPadding 要求：<br/>
+	 * AES/CBC/NoPadding 要求：
 	 * 1.密钥必须是16位的；
-	 * 2.Initialization vector (IV) 必须是16位<br/>
+	 * 2.Initialization vector (IV) 必须是16位
 	 * 3.待加密内容的长度必须是16的倍数，如果不是16的倍数，就会出如下异常：
 	 * javax.crypto.IllegalBlockSizeException: Input length not multiple of 16 bytes
-	 * <br/><br/>
+	 *
 	 * 由于固定了位数，所以对于被加密数据有中文的, 加、解密不完整
 	 *
 	 * @param content 明文字符串，长度必须为16的倍数
@@ -174,13 +210,9 @@ public class Aes {
 
 
 	/**
-	 * AES/CBC/PKCS5Padding <br/>
+	 * AES/CBC/PKCS5Padding
 	 * 对要加密的文本没有像NoPadding时有长度限制，但如果包含中文，一般需要对文本进行base64编码
 	 *
-	 * @param content
-	 * @param password
-	 * @param iv
-	 * @return
 	 */
 	public static String encryptCBCPKCS5Padding(String content, String password, String iv) {
 		byte[] data = null;
@@ -210,10 +242,6 @@ public class Aes {
 	/**
 	 * AES/CBC/PKCS5Padding
 	 *
-	 * @param content
-	 * @param password
-	 * @param iv
-	 * @return
 	 */
 	public static String decryptCBCPKCS5Padding(String content, String password, String iv) {
 		byte[] data = null;

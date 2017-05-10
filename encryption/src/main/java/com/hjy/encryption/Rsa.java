@@ -1,4 +1,6 @@
-package com.hjy.encryption;
+package com.bwton.pay.encrypt;
+
+import com.hjy.encryption.Base64;
 
 import java.security.Key;
 import java.security.KeyFactory;
@@ -11,7 +13,7 @@ import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.Cipher;
 /**
- * 
+ *
  * RSA加解密算法<br>
  * 1.客户端采用公钥进行数据加密，服务端采用私钥进行解密<br>
  * 2.服务端采用私钥进行数据签名，客户端采用公钥进行签名验证<br>
@@ -25,7 +27,7 @@ public class Rsa {
 	 * 加密算法
 	 */
 	private static final String ALGORITHM = "RSA";
-	
+
 	/**
 	 * 签名算法
 	 */
@@ -35,9 +37,9 @@ public class Rsa {
 	 * 编码
 	 */
 	private static final String CHARSET = "UTF-8";
-	
+
 	/**
-	 * 
+	 *
 	 * @param algorithm 算法
 	 * @param bysKey
 	 * @return
@@ -53,13 +55,13 @@ public class Rsa {
 
 	/**
 	 * 采用公钥进行加密
-	 * 
+	 *
 	 * @param content 需要加密的字符串
 	 * @param publicKey 公钥，base64编码
-	 * 
+	 *
 	 * @return base64编码后的加密字符串
 	 */
-	public static String encrypt(String content, String publicKey) {
+	public static String encryptByPublicKey(String content, String publicKey) {
 		try {
 			PublicKey pubkey = getPublicKeyFromX509(ALGORITHM, publicKey);
 			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
@@ -76,40 +78,40 @@ public class Rsa {
 
 	/**
 	 * 采用私钥进行解密
-	 * 
+	 *
 	 * @param encryptData 加密后的数据，base64编码
 	 * @param privateKey 私钥，base64编码
-	 * 
+	 *
 	 * @return 解密后的字符串
 	 */
-	public static String decrypt(String encryptData, String privateKey) {
-        try {
-        	byte[] keyBytes = Base64.decode(privateKey, Base64.NO_WRAP);
-            PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
-            Key privateK = keyFactory.generatePrivate(pkcs8KeySpec);
-            
-            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            cipher.init(Cipher.DECRYPT_MODE, privateK);
-            
-            byte[] plaintext = Base64.decode(encryptData.getBytes(CHARSET), Base64.NO_WRAP);
-            byte[] result = cipher.doFinal(plaintext);        
-            return new String(result, CHARSET);
-        } catch(Exception e) {
-        	e.printStackTrace();
-        }
-        return null;
-    }
-	
+	public static String decryptByPrivateKey(String encryptData, String privateKey) {
+		try {
+			byte[] keyBytes = Base64.decode(privateKey, Base64.NO_WRAP);
+			PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
+			KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
+			Key privateK = keyFactory.generatePrivate(pkcs8KeySpec);
+
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			cipher.init(Cipher.DECRYPT_MODE, privateK);
+
+			byte[] plaintext = Base64.decode(encryptData.getBytes(CHARSET), Base64.NO_WRAP);
+			byte[] result = cipher.doFinal(plaintext);
+			return new String(result, CHARSET);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	/**
 	 * 采用私钥进行签名
-	 * 
+	 *
 	 * @param content 需要签名的内容
 	 * @param privateKey 私钥，base64编码
-	 * 
+	 *
 	 * @return base64编码后的签名字符串
 	 */
-	public static String sign(String content, String privateKey) {
+	public static String signByPrivateKey(String content, String privateKey) {
 		try {
 			PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(Base64.decode(privateKey, Base64.NO_WRAP));
 			KeyFactory keyf = KeyFactory.getInstance(ALGORITHM);
@@ -127,11 +129,11 @@ public class Rsa {
 
 	/**
 	 * 验证签名
-	 * 
+	 *
 	 * @param content 需要验证的字符串
 	 * @param sign 签名字符串
 	 * @param publicKey 公钥, base64编码
-	 * 
+	 *
 	 * @return true表示签名一致
 	 */
 	public static boolean doCheck(String content, String sign, String publicKey) {
@@ -149,4 +151,40 @@ public class Rsa {
 		}
 		return false;
 	}
+
+	/**
+	 * 公钥解密
+	 *
+	 * @param data 加密文本
+	 * @param key 公钥
+	 *
+	 * @return 解密后内容
+	 */
+	public static String decryptByPublicKey(String data, String key) {
+		try {
+			byte[] decode = Base64.decode(data.getBytes(), Base64.NO_WRAP);
+			byte[] byPublicKey = decryptByPublicKey(decode, key.getBytes("utf-8"));
+			return new String(byPublicKey, CHARSET);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static byte[] decryptByPublicKey(byte[] data, byte[] key) throws Exception {
+		byte[] keyBytes = Base64.decode(key, Base64.NO_WRAP);
+
+		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+		KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
+		PublicKey publicKey = keyFactory.generatePublic(keySpec);
+
+//        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+		//java 与 android平台不一致, android需采用以下方法
+		Cipher cipher = Cipher.getInstance("RSA/None/PKCS1Padding");
+
+		cipher.init(Cipher.DECRYPT_MODE, publicKey);
+		return cipher.doFinal(data);
+	}
+
 }

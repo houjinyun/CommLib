@@ -24,8 +24,9 @@ public class Hash {
 	/**
 	 * 获取32位MD5加密数据
 	 * 
-	 * @param content
-	 * @return
+	 * @param content content
+     *
+	 * @return md5值
 	 */
 	public static String getMD5(String content) {
 		if(content == null) {
@@ -46,7 +47,7 @@ public class Hash {
      * 获取文件的MD5值
      *
      * @param file 文件
-     * @return
+     * @return md5值
      */
 	public static String getMd5(File file) {
 		if(file != null && file.exists()) {
@@ -83,7 +84,7 @@ public class Hash {
      * 获取文件的CRC32校验值
      *
      * @param file 文件
-     * @return
+     * @return CRC32校验值
      */
     public static String getCRC32String(File file){
         if(file != null && file.exists()) {
