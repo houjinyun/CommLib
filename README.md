@@ -12,7 +12,7 @@
 ###使用加密算法库:
 1). 在build.gradle里添加如下依赖
 
-	compile 'com.hjy.library:encryption:1.0.4'
+	compile 'com.hjy.library:encryption:1.0.5'
 
 ###使用ZBar进行条形码扫描
 		
