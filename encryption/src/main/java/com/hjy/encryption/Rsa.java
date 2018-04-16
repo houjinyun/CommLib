@@ -1,7 +1,6 @@
-package com.bwton.pay.encrypt;
+package com.hjy.encryption;
 
-import com.hjy.encryption.Base64;
-
+import java.io.UnsupportedEncodingException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -63,10 +62,27 @@ public class Rsa {
 	 */
 	public static String encryptByPublicKey(String content, String publicKey) {
 		try {
+			return encryptByPublicKey(content.getBytes(CHARSET), publicKey);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 采用公钥进行加密
+	 *
+	 * @param content 需要加密的数据
+	 * @param publicKey 公钥，base64编码
+	 *
+	 * @return base64编码后的加密字符串
+	 */
+	public static String encryptByPublicKey(byte[] content, String publicKey) {
+		try {
 			PublicKey pubkey = getPublicKeyFromX509(ALGORITHM, publicKey);
 			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, pubkey);
-			byte plaintext[] = content.getBytes(CHARSET);
+			byte plaintext[] = content;
 			byte[] output = cipher.doFinal(plaintext);
 			String s = new String(Base64.encode(output, Base64.NO_WRAP), CHARSET);
 			return s;
@@ -104,6 +120,32 @@ public class Rsa {
 	}
 
 	/**
+	 * 采用私钥进行解密
+	 *
+	 * @param encryptData 公钥加密后的数据
+	 * @param privateKey 私钥，base64编码
+	 *
+	 * @return 解密后的字符串
+	 */
+	public static String decryptByPrivateKey(byte[] encryptData, String privateKey) {
+		try {
+			byte[] keyBytes = Base64.decode(privateKey, Base64.NO_WRAP);
+			PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
+			KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
+			Key privateK = keyFactory.generatePrivate(pkcs8KeySpec);
+
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			cipher.init(Cipher.DECRYPT_MODE, privateK);
+
+			byte[] result = cipher.doFinal(encryptData);
+			return new String(result, CHARSET);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
 	 * 采用私钥进行签名
 	 *
 	 * @param content 需要签名的内容
@@ -113,12 +155,29 @@ public class Rsa {
 	 */
 	public static String signByPrivateKey(String content, String privateKey) {
 		try {
+			return signByPrivateKey(content.getBytes(CHARSET), privateKey);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 采用私钥进行签名
+	 *
+	 * @param content 需要签名的内容
+	 * @param privateKey 私钥，base64编码
+	 *
+	 * @return base64编码后的签名字符串
+	 */
+	public static String signByPrivateKey(byte[] content, String privateKey) {
+		try {
 			PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(Base64.decode(privateKey, Base64.NO_WRAP));
 			KeyFactory keyf = KeyFactory.getInstance(ALGORITHM);
 			PrivateKey priKey = keyf.generatePrivate(priPKCS8);
 			java.security.Signature signature = java.security.Signature.getInstance(SIGN_ALGORITHMS);
 			signature.initSign(priKey);
-			signature.update(content.getBytes(CHARSET));
+			signature.update(content);
 			byte[] signed = signature.sign();
 			return new String(Base64.encode(signed, Base64.NO_WRAP), CHARSET);
 		} catch (Exception e) {
@@ -138,12 +197,30 @@ public class Rsa {
 	 */
 	public static boolean doCheck(String content, String sign, String publicKey) {
 		try {
+			return doCheck(content.getBytes(CHARSET), sign, publicKey);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * 验证签名
+	 *
+	 * @param content 需要验证的内容
+	 * @param sign 签名字符串
+	 * @param publicKey 公钥, base64编码
+	 *
+	 * @return true表示签名一致
+	 */
+	public static boolean doCheck(byte[] content, String sign, String publicKey) {
+		try {
 			KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
 			byte[] encodedKey = Base64.decode(publicKey, Base64.NO_WRAP);
 			PublicKey pubKey = keyFactory.generatePublic(new X509EncodedKeySpec(encodedKey));
 			java.security.Signature signature = java.security.Signature.getInstance(SIGN_ALGORITHMS);
 			signature.initVerify(pubKey);
-			signature.update(content.getBytes(CHARSET));
+			signature.update(content);
 			boolean bverify = signature.verify(Base64.decode(sign, Base64.NO_WRAP));
 			return bverify;
 		} catch (Exception e) {
